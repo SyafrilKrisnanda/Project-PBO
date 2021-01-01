@@ -1,31 +1,144 @@
-balance = 600
+import sqlite3
+nama = 'admin'
+password = 'admin'
 
-def withdraw():  # asks for withdrawal amount, withdraws amount from balance, returns the balance amount
-    counter = 0
-    while counter <= 2:
-        while counter == 0:
-            withdraw = int(input("Enter the amount you want to withdraw: "))
-            counter = counter + 1
-        while ((int(balance) - int(withdraw)) < 0):
-            print("Error Amount not available in card.")
-            withdraw = int(input("Please enter the amount you want to withdraw again: "))
-            continue
-        while ((float(balance) - float(withdraw)) >= 0):
-            print("Amount left in your account: " + str(balance - withdraw))
-            return (balance - withdraw)
-        counter = counter + 1
+class DataManager:
+    def __init__(self):
+        self.con = sqlite3.connect('F:/database/nabungyuk.sqlite3')
+        self.cursor = self.con.cursor() 
+    def executeQuery(self, query, retVal=False):
+        self.cursor.execute(query)
+        all_results = self.cursor.fetchall()
+        self.con.commit()
+        if retVal:
+            return all_results
+
+class User(DataManager):
+    def setDataUser(self, nama, password):
+        self.query = 'INSERT INTO User (nama, password) \
+            VALUES (\'%s\', \'%s\')' 
+        self.query = self.query % (nama, password)
+        print('self.query : ', self.query )
+        self.executeQuery(self.query)
+
+    def getDataUser(self, nama, password):
+        self.query = 'SELECT id_user FROM User \
+            where nama=\'%s\' and password=\'%s\'' 
+        self.query = self.query % (nama, password)
+        print('self.query : ', self.query )
+        id_user = self.executeQuery(self.query, retVal=True)
+        return id_user
+
+class Pemasukan(User):
+    def setDataPemasukan(self, pemasukan, keterangan):
+        self.setDataUser(nama, password)
+        id_user = self.getDataUser(nama, password)
+        self.query = 'INSERT INTO pemasukan (id_user, pemasukan, keterangan)\
+            values (%s, \'%s\', \'%s\')' 
+        self.query = self.query % (id_user[0][0], pemasukan, keterangan)
+        print('self.query : ', self.query )
+        self.executeQuery(self.query)
+
+    def getPemasukan(self):
+        self.query = 'SELECT pemasukan, keterangan FROM pemasukan '
+        data = self.executeQuery(self.query, True)
+        return data
 
 
-def deposit():
-    counter = 0
-    while counter <= 2:
-        while counter == 0:
-            deposit = int(input("Enter amount to be deposited: "))
-            counter = counter + 1
-        while ((int(balance) + int(deposit)) >= 0):
-            print("Amount left in your account:" + str(balance + deposit))
-            return (balance + deposit)
-        counter = counter + 1
+class Pengeluaran(User):        
+     def setDataPengeluaran(self, pengeluaran, keterangan):
+        self.setDataUser(nama, password)
+        id_user = self.getDataUser(nama, password)
+        self.query = 'INSERT INTO pengeluaran (id_user, pengeluaran, keterangan)\
+            values (%s, \'%s\', \'%s\')' 
+        self.query = self.query % (id_user[0][0], pengeluaran, keterangan)
+        print('self.query : ', self.query )
+        self.executeQuery(self.query)
 
-balance = withdraw()
-balance = deposit()
+     def getPengeluaran(self):
+        self.query = 'SELECT *FROM pengeluaran '
+        data = self.executeQuery(self.query, True)
+        return data
+
+class Balance(Pengeluaran, Pemasukan):
+        def saldo(self):
+            self.query = 'SELECT (sum(pemasukan) + (-sum(pengeluaran))) as [saldo] FROM pemasukan a join pengeluaran b'
+            data = self.executeQuery(self.query, True)
+            return data
+
+
+pms = Pemasukan()
+png = Pengeluaran()
+sld = Balance()
+jalan = True
+
+def tampilkanPilihan():
+    print ('selamat datang')
+    print('-----------------')
+    print('Pilih menu:')
+    print('1. Tambah pemasukan')
+    print('2. Tambah Pengeluaran')
+    print('3. Lihat Pemasukan')
+    print('4. Lihat Pengeluaran')
+    print('5. Melihat Saldo')
+    pilihan = input('Masukkan pilihan: ')
+    return pilihan
+
+def tambahDataPemasukan():
+    global pms
+    print('\nTambah data pemasukan:')
+    pemasukan = input('Masukkan pemasukan: ')
+    print('pemasukan: ', pemasukan)
+    keterangan = input('Masukkan keterangan: ')
+    print ('keterangan: ', keterangan)
+    pms.setDataPemasukan(pemasukan, keterangan)
+    print('\n')
+
+def tambahDataPengeluaran():
+    global png
+    print('\nTambah data pengeluaran:')
+    pengeluaran = input('Masukkan pengeluaran: ')
+    print('pengeluaran: ', pengeluaran)
+    keterangan = input('Masukkan keterangan: ')
+    print ('keterangan: ', keterangan)
+    png.setDataPengeluaran(pengeluaran, keterangan)
+    print('\n')
+
+def tampilkanDataPemasukan():
+    print('\npemasukan:')
+    dataPemasukan =pms.getPemasukan()
+    for row in dataPemasukan:
+        print(row)
+    print('\n')
+
+def tampilkanDataPengeluaran():
+    print('\npengeluaran:')
+    dataPengeluaran =png.getPengeluaran()
+    for row in dataPengeluaran:
+        print(row)
+    print('\n')
+
+def melihatSaldo():
+    print('\nSaldo Tersisa:')
+    saldoo =sld.saldo()
+    for row in saldoo:
+        print(row)
+    print('\n')
+
+
+while jalan:
+    pilihan = tampilkanPilihan()
+    if pilihan == '1':
+        tambahDataPemasukan()
+        
+    elif pilihan == '2':
+        tambahDataPengeluaran()
+
+    elif pilihan == '3':
+        tampilkanDataPemasukan()
+
+    elif pilihan == '4':
+        tampilkanDataPengeluaran()
+
+    elif pilihan == '5':
+        melihatSaldo()
