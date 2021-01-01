@@ -60,11 +60,12 @@ class Pengeluaran(User):
         data = self.executeQuery(self.query, True)
         return data
 
-class Balance(Pengeluaran, Pemasukan):
-        def saldo(self):
-            self.query = 'SELECT (sum(pemasukan) + (-sum(pengeluaran))) as [saldo] FROM pemasukan a join pengeluaran b'
-            data = self.executeQuery(self.query, True)
-            return data
+class Balance(DataManager):
+    def saldo(self):
+        self.query = 'SELECT (SELECT sum(pemasukan) FROM pemasukan) + \
+        (SELECT (-sum(pengeluaran)) FROM pengeluaran) as saldo'
+        data = self.executeQuery(self.query, True)
+        return data
 
 
 pms = Pemasukan()
@@ -72,73 +73,78 @@ png = Pengeluaran()
 sld = Balance()
 jalan = True
 
-def tampilkanPilihan():
-    print ('selamat datang')
-    print('-----------------')
-    print('Pilih menu:')
-    print('1. Tambah pemasukan')
-    print('2. Tambah Pengeluaran')
-    print('3. Lihat Pemasukan')
-    print('4. Lihat Pengeluaran')
-    print('5. Melihat Saldo')
-    pilihan = input('Masukkan pilihan: ')
-    return pilihan
 
-def tambahDataPemasukan():
-    global pms
-    print('\nTambah data pemasukan:')
-    pemasukan = input('Masukkan pemasukan: ')
-    print('pemasukan: ', pemasukan)
-    keterangan = input('Masukkan keterangan: ')
-    print ('keterangan: ', keterangan)
-    pms.setDataPemasukan(pemasukan, keterangan)
-    print('\n')
+class Main(object):
+    def tampilkanPilihan():
+        print ('selamat datang')
+        print('-----------------')
+        print('Pilih menu:')
+        print('1. Tambah pemasukan')
+        print('2. Tambah Pengeluaran')
+        print('3. Lihat Pemasukan')
+        print('4. Lihat Pengeluaran')
+        print('5. Melihat Saldo')
+        pilihan = input('Masukkan pilihan: ')
+        return pilihan
 
-def tambahDataPengeluaran():
-    global png
-    print('\nTambah data pengeluaran:')
-    pengeluaran = input('Masukkan pengeluaran: ')
-    print('pengeluaran: ', pengeluaran)
-    keterangan = input('Masukkan keterangan: ')
-    print ('keterangan: ', keterangan)
-    png.setDataPengeluaran(pengeluaran, keterangan)
-    print('\n')
+    def tambahDataPemasukan():
+        global pms
+        print('\nTambah data pemasukan:')
+        pemasukan = input('Masukkan pemasukan: ')
+        print('pemasukan: ', pemasukan)
+        keterangan = input('Masukkan keterangan: ')
+        print ('keterangan: ', keterangan)
+        pms.setDataPemasukan(pemasukan, keterangan)
+        print('\n')
 
-def tampilkanDataPemasukan():
-    print('\npemasukan:')
-    dataPemasukan =pms.getPemasukan()
-    for row in dataPemasukan:
-        print(row)
-    print('\n')
+    def tambahDataPengeluaran():
+        global png
+        print('\nTambah data pengeluaran:')
+        pengeluaran = input('Masukkan pengeluaran: ')
+        print('pengeluaran: ', pengeluaran)
+        keterangan = input('Masukkan keterangan: ')
+        print ('keterangan: ', keterangan)
+        png.setDataPengeluaran(pengeluaran, keterangan)
+        print('\n')
 
-def tampilkanDataPengeluaran():
-    print('\npengeluaran:')
-    dataPengeluaran =png.getPengeluaran()
-    for row in dataPengeluaran:
-        print(row)
-    print('\n')
+    def tampilkanDataPemasukan():
+        print('\npemasukan:')
+        dataPemasukan =pms.getPemasukan()
+        for row in dataPemasukan:
+            print(row)
+        print('\n')
 
-def melihatSaldo():
-    print('\nSaldo Tersisa:')
-    saldoo =sld.saldo()
-    for row in saldoo:
-        print(row)
-    print('\n')
+    def tampilkanDataPengeluaran():
+        print('\npengeluaran:')
+        dataPengeluaran =png.getPengeluaran()
+        for row in dataPengeluaran:
+            print(row)
+        print('\n')
+
+    def melihatSaldo():
+        print('\nSaldo Tersisa:')
+        saldoo = sld.saldo()
+        for row in saldoo:
+            print(row)
+        print('\n')
 
 
-while jalan:
-    pilihan = tampilkanPilihan()
-    if pilihan == '1':
-        tambahDataPemasukan()
-        
-    elif pilihan == '2':
-        tambahDataPengeluaran()
+    while jalan:
+        pilihan = tampilkanPilihan()
+        if pilihan == '1':
+            tambahDataPemasukan()
+            
+        elif pilihan == '2':
+            tambahDataPengeluaran()
 
-    elif pilihan == '3':
-        tampilkanDataPemasukan()
+        elif pilihan == '3':
+            tampilkanDataPemasukan()
 
-    elif pilihan == '4':
-        tampilkanDataPengeluaran()
+        elif pilihan == '4':
+            tampilkanDataPengeluaran()
 
-    elif pilihan == '5':
-        melihatSaldo()
+        elif pilihan == '5':
+            melihatSaldo()
+
+
+main()
